@@ -1,5 +1,39 @@
 final posters = [
   {
+    'title': 'Perfume catalogue',
+    'images': [
+      'https://lh3.googleusercontent.com/d/1CBrYlzWxp4j3DHYK85dk3qsfaPgtSWaE',
+      'https://lh3.googleusercontent.com/d/17CgxahQHRqRPSuhCXzCfpaDtgNHVNWAT',
+      'https://lh3.googleusercontent.com/d/1_sMcJtEwQf9gLxBQR0zFiwVd6QKBmqUW',
+      'https://lh3.googleusercontent.com/d/14hgs-kJH5kCobNJOcm8WfHeEg2m-2ZGI',
+      'https://lh3.googleusercontent.com/d/1kKWz6dKAah-nT0G9BMhmkuQLfBA-C0er',
+      'https://lh3.googleusercontent.com/d/17-wHLO8kwFx9j_heUpSQO9QZ-yih-gjW',
+    ],
+    'description': 'Tool used: Inkscape Software',
+    'category': 'Posters',
+    'details': """
+Designed based on the references and requirements of client
+        
+Tool used: Inkscape Software""",
+  },
+  {
+    'title': 'Perfume catalogue',
+    'images': [
+      'https://lh3.googleusercontent.com/d/1AdQL2mwwaSxodOf6Jyxe5E-J4MfBR_gO',
+      'https://lh3.googleusercontent.com/d/1mHEYaByDX-HnhqJ8LhBFQiLarXtlW-ni',
+      'https://lh3.googleusercontent.com/d/1Fn6uRpcLPWshFdSXitgeaL8-0UzD-hsN',
+      'https://lh3.googleusercontent.com/d/1NwzJQVJ64gbK2S2j9UlmIUApVdlslbIw',
+      'https://lh3.googleusercontent.com/d/114p-LHwU5xL7ecs6wlrUtag8jehAhxZa',
+      'https://lh3.googleusercontent.com/d/1kO2PgtcsPclka4AfRA9Xd_x_Cm_qO5p0',
+    ],
+    'description': 'Tool used: Inkscape Software',
+    'category': 'Posters',
+    'details': """
+Designed based on the references and requirements of client
+        
+Tool used: Inkscape Software""",
+  },
+  {
     'title': 'Ford Mustang',
     'imageurl': 'assets/images/mustang.png',
     'description': 'Tool used: Inkscape Software',

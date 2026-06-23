@@ -1,5 +1,7 @@
 import 'package:designsmith/about.dart';
 import 'package:designsmith/home_page.dart';
+import 'package:designsmith/app_theme.dart';
+import 'package:designsmith/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,7 +13,11 @@ class Welcome extends StatefulWidget {
   State<Welcome> createState() => _WelcomeState();
 }
 
-class _WelcomeState extends State<Welcome> {
+class _WelcomeState extends State<Welcome> with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+  late Animation<double> _fadeAnim;
+  late Animation<Offset> _slideAnim;
+
   void _instaUrl() async {
     final Uri url = Uri.parse(
       'https://www.instagram.com/designsmithh?igsh=MTl1eGdqMXB3a2syZA==',
@@ -56,10 +62,31 @@ class _WelcomeState extends State<Welcome> {
   @override
   void initState() {
     super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _fadeAnim = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+    );
+    _animController.forward();
 
     Future.delayed(Duration.zero, () {
       preloadImages(context);
     });
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
   }
 
   void preloadImages(BuildContext context) async {
@@ -82,294 +109,203 @@ class _WelcomeState extends State<Welcome> {
     );
   }
 
+  void _navigateTo(Widget page) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 400),
+        pageBuilder: (context, animation, secondaryAnimation) => page,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth > 800) {
-          return Scaffold(
-            body: Stack(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/welcome.png'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 90),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: _linkedinUrl,
-                            child: Container(
-                              width: 50,
-                              height: 50,
-                              child: SvgPicture.asset(
-                                'assets/images/insta.svg',
-                                fit: BoxFit.contain,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 80),
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: _instaUrl,
-                            child: Container(
-                              width: 50,
-                              height: 50,
-                              child: SvgPicture.asset(
-                                'assets/images/linkedin.svg',
-                                fit: BoxFit.contain,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 80),
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: _launchCall,
-                            child: Container(
-                              child: Icon(
-                                Icons.call,
-                                color: Colors.white,
-                                size: 50,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 80),
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: _launchEmail,
-                            child: Container(
-                              child: Icon(
-                                Icons.mail,
-                                color: Colors.white,
-                                size: 50,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 40, top: 100),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.of(context).push(
-                                PageRouteBuilder(
-                                  pageBuilder:
-                                      (context, animation1, animation2) =>
-                                          HomePage(),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              'MY DESIGNS',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 40),
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.of(context).push(
-                                PageRouteBuilder(
-                                  pageBuilder:
-                                      (context, animation1, animation2) =>
-                                          About(),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              'ABOUT',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+    final isMobile = Responsive.isMobile(context);
+    final bgImage =
+        isMobile ? 'assets/images/mobile.png' : 'assets/images/welcome.png';
+
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Background image
+          Image.asset(bgImage, fit: BoxFit.cover),
+
+          // Dark overlay for better contrast
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.1),
+                  Colors.black.withValues(alpha: 0.5),
+                ],
+              ),
             ),
-          );
-        } else {
-          return Scaffold(
-            body: Stack(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/mobile.png'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 37, bottom: 40),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: _linkedinUrl,
-                            child: Container(
-                              width: 25,
-                              height: 25,
-                              child: SvgPicture.asset(
-                                'assets/images/insta.svg',
-                                fit: BoxFit.contain,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 25),
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: _instaUrl,
-                            child: Container(
-                              width: 25,
-                              height: 25,
-                              child: SvgPicture.asset(
-                                'assets/images/linkedin.svg',
-                                fit: BoxFit.contain,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 25),
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: _launchCall,
-                            child: Container(
-                              child: Icon(
-                                Icons.call,
-                                color: Colors.white,
-                                size: 25,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 25),
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: _launchEmail,
-                            child: Container(
-                              child: Icon(
-                                Icons.mail,
-                                color: Colors.white,
-                                size: 25,
-                              ),
-                            ),
-                          ),
-                        ),
+          ),
+
+          // Content
+          SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 28 : 80,
+                vertical: isMobile ? 24 : 40,
+              ),
+              child: Column(
+                crossAxisAlignment:
+                    isMobile
+                        ? CrossAxisAlignment.start
+                        : CrossAxisAlignment.start,
+                children: isMobile
+                    ? [
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.42),
+                        _buildSocialRow(isMobile),
+                        const Spacer(),
+                        _buildNavButtons(isMobile),
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.12),
+                      ]
+                    : [
+                        const Spacer(),
+                        _buildSocialRow(isMobile),
+                        const SizedBox(height: 50),
+                        _buildNavButtons(isMobile),
+                        const SizedBox(height: 260),
                       ],
-                    ),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 40, bottom: 120),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.of(context).push(
-                                PageRouteBuilder(
-                                  pageBuilder:
-                                      (context, animation1, animation2) =>
-                                          HomePage(),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              'MY DESIGNS',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 20),
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.of(context).push(
-                                PageRouteBuilder(
-                                  pageBuilder:
-                                      (context, animation1, animation2) =>
-                                          About(),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              'ABOUT',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          );
-        }
-      },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSocialRow(bool isMobile) {
+    final iconSize = isMobile ? 28.0 : 42.0;
+    final spacing = isMobile ? 20.0 : 40.0;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _socialIcon(
+          onTap: _linkedinUrl,
+          child: SvgPicture.asset(
+            'assets/images/insta.svg',
+            width: iconSize,
+            height: iconSize,
+            fit: BoxFit.contain,
+            colorFilter: const ColorFilter.mode(
+              AppTheme.white,
+              BlendMode.srcIn,
+            ),
+          ),
+        ),
+        SizedBox(width: spacing),
+        _socialIcon(
+          onTap: _instaUrl,
+          child: SvgPicture.asset(
+            'assets/images/linkedin.svg',
+            width: iconSize,
+            height: iconSize,
+            fit: BoxFit.contain,
+            colorFilter: const ColorFilter.mode(
+              AppTheme.white,
+              BlendMode.srcIn,
+            ),
+          ),
+        ),
+        SizedBox(width: spacing),
+        _socialIcon(
+          onTap: _launchCall,
+          child: Icon(Icons.call, color: AppTheme.white, size: iconSize),
+        ),
+        SizedBox(width: spacing),
+        _socialIcon(
+          onTap: _launchEmail,
+          child: Icon(
+            Icons.mail_outline,
+            color: AppTheme.white,
+            size: iconSize,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _socialIcon({required VoidCallback onTap, required Widget child}) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white.withValues(alpha: 0.1),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavButtons(bool isMobile) {
+    final fontSize = isMobile ? 16.0 : 22.0;
+
+    return Wrap(
+      spacing: isMobile ? 16 : 32,
+      runSpacing: 12,
+      children: [
+        _navButton(
+          label: 'MY DESIGNS',
+          fontSize: fontSize,
+          onTap: () => _navigateTo(const HomePage()),
+        ),
+        _navButton(
+          label: 'ABOUT',
+          fontSize: fontSize,
+          onTap: () => _navigateTo(const About()),
+        ),
+      ],
+    );
+  }
+
+  Widget _navButton({
+    required String label,
+    required double fontSize,
+    required VoidCallback onTap,
+  }) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: fontSize * 1.2,
+            vertical: fontSize * 0.6,
+          ),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: AppTheme.white.withValues(alpha: 0.6),
+              width: 1.5,
+            ),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+            color: Colors.white.withValues(alpha: 0.08),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: fontSize,
+              color: AppTheme.white,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
